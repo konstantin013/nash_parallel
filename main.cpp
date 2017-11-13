@@ -28,18 +28,33 @@ create_local_matrix(
 }
 
 vector<double> 
-calc_max_in_col(const vector<vector<double> > &F)
+calc_max_in_rows(const vector<vector<double> > &G)
 {
-	vector<double> F_max(F.size());
-	for (int i = 0; i < F.size(); ++i) {
-		F_max[i] = F[i][0];
-		for (int j = 1; j < F[i].size(); ++j) {
-			F_max[i] = max(F_max[i], F[i][j]);
+	vector<double> G_max(G.size());
+	for (int i = 0; i < G.size(); ++i) {
+		G_max[i] = G[i][0];
+		for (int j = 1; j < G[i].size(); ++j) {
+			G_max[i] = max(G_max[i], G[i][j]);
 		}
 	}
 
+	return G_max;
+}
+
+vector<double>
+calc_max_in_cols(const vector<vector<double> > &F)
+{
+	vector<double> F_max(F[0].size());
+
+	for (int i = 0; i < F_max.size(); ++i) {
+		F_max[i] = F[0][i];
+		for (int j = 1; j < F.size(); ++j) {
+			F_max[i] = max(F_max[i], F[j][i]);
+		}
+	}
 	return F_max;
 }
+
 
 
 int
@@ -79,16 +94,10 @@ main(int argc, char *argv[])
 	int loc_n = rank < n % n_proc ? n / n_proc + 1 : n / n_proc;
 
 	//columns of F
-	vector<double> loc_F_col_max(m);
-	for (int i = 0; i < m; ++i) {
-		loc_F_col_max[i] = F[0][i];
-		for (int j = 1; j < loc_n; ++j) {
-			loc_F_col_max[i] = max(loc_F_col_max[i], F[j][i]);
-		}
-	}
+	vector<double> loc_F_col_max = calc_max_in_cols(F);
 
 	//and rows of G
-	vector<double> loc_G_row_max = calc_max_in_col(G);
+	vector<double> loc_G_row_max = calc_max_in_rows(G);
 
 
 //now we gather this local maximums in on common vector
