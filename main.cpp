@@ -29,6 +29,31 @@ calc_max_in_col(const vector<vector<double> > &F)
 	return F_max;
 }
 
+void
+my_gather(
+	const std::vector<double> &loc_max,
+	int n,
+	int n_proc)
+{
+	int s_loc_n = n / n_proc;
+	int cnt_big = n % n_proc;
+
+	vector<int> pos(n_proc);
+	for (int i = 0; i < n_proc; ++i) {
+		pos[i] = rank <= cnt_big ? i * s_loc_n : i * s_loc_n + (i - cnt_big);
+	}
+
+	vector<int> rcount(n_proc);
+	for (int i = 0; i < n_proc; ++i) {
+		rcount[i] = rank < cnt_big ? s_loc_n + 1 : s_loc_n;
+	}
+
+	vector<double> comm_max(n);	
+	MPI_Allgatherv(loc_max.data(), loc_max.size(), MPI_DOUBLE,
+				comm_max.data(), rcount.data(), pos.data(), MPI_DOUBLE, MPI_COMM_WORLD);
+
+	return comm_max;
+}
 
 int
 main(int argc, char *argv[])
@@ -95,20 +120,9 @@ main(int argc, char *argv[])
 
 
 //now we gather this local maximums in on common vector
-	vector<double> F_max(m);
-	vector<int> pos(n_proc);
-	for (int i = 0; i < n_proc; ++i) {
-		pos[i] = i <= n_b ? (n / n_proc + 1) * i : ;
-	} 
+	vector<double> F_max = my_gather(loc_F_col_max, n, n_proc);
 
-	vector<int> rcounts(n_proc);
-	for (int i = 0; i < n_proc; ++i) {
-		rcounts[i] = i < n_b ? n / n_proc + 1 : n / n_proc * n_b + (i - n_b) * (n / n_proc + 1);
-	}
-	MPI_Gatherv(loc_F_col_max.data(), loc_m, MPI_DOUBLE, F_max.data(), rcounts, pos, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	MPI_Bcast(F_max.data(), m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	vector<double> G_max(loc_n);
+	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //
 
