@@ -20,7 +20,7 @@ create_local_matrix(
 	vector<vector<double> > F(loc_n, vector<double>(m));
 	for (auto &i: F) {
 		for (auto &j: i) {
-			j = 10.0;
+			j = rand() % 1000;
 		}
 	}	
 
@@ -86,12 +86,16 @@ main(int argc, char *argv[])
 	if (rank == 0) {
 		// this is main process
 		cin >> n >> m;
+		if (n < m) {
+			swap(n, m);
+		}
 	}
 
 	MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 //Create and fill its part of matrices F and G
+	srand(time(NULL));
 	vector<vector<double> > F = create_local_matrix(n, m, n_proc, rank);
 	vector<vector<double> > G = create_local_matrix(n, m, n_proc, rank);
 
