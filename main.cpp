@@ -8,6 +8,25 @@
 using namespace std;
 
 
+vector<vector<double> >
+create_local_matrix(
+	int n, 
+	int m,
+	int n_proc,
+	int rank)
+{
+	int loc_m = rank < m % n_proc ? m / n_proc + 1 : m / n_proc;
+
+	vector<vector<double> > F(loc_m, vector<double>(n));
+	for (auto &i: F) {
+		for (auto &j: i) {
+			j = 10.0;
+		}
+	}	
+
+	return F;
+}
+
 vector<double> 
 calc_max_in_col(const vector<vector<double> > &F)
 {
@@ -89,20 +108,8 @@ main(int argc, char *argv[])
 	}	
 
 //Create and fill its part of matrices F and G
-	vector<vector<double> > F(loc_m, vector<double>(n));
-	for (auto &i: F) {
-		for (auto &j: i) {
-			j = 10.0;
-		}
-	}
-
-
-	vector<vector<double> > G(loc_n, vector<double>(m));
-	for (auto &i: G) {
-		for (auto &j: i) {
-			j = 15.0;
-		}
-	}
+	vector<vector<double> > F = create_local_matrix(n, m, n_proc, rank);
+	vector<vector<double> > G = create_local_matrix(m, n, n_proc, rank);
 
 //every process calculate max in every its rows of matrix G and columns of matrix F
 
