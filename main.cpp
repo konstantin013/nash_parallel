@@ -15,9 +15,9 @@ create_local_matrix(
 	int n_proc,
 	int rank)
 {
-	int loc_m = rank < m % n_proc ? m / n_proc + 1 : m / n_proc;
+	int loc_n = rank < n % n_proc ? n / n_proc + 1 : n / n_proc;
 
-	vector<vector<double> > F(loc_m, vector<double>(n));
+	vector<vector<double> > F(loc_n, vector<double>(m));
 	for (auto &i: F) {
 		for (auto &j: i) {
 			j = 10.0;
@@ -93,18 +93,31 @@ main(int argc, char *argv[])
 
 //Create and fill its part of matrices F and G
 	vector<vector<double> > F = create_local_matrix(n, m, n_proc, rank);
-	vector<vector<double> > G = create_local_matrix(m, n, n_proc, rank);
+	vector<vector<double> > G = create_local_matrix(n, m, n_proc, rank);
 
 //every process calculate max in every its rows of matrix G and columns of matrix F
 
+	int loc_n = rank < n % n_proc ? n / n_proc + 1 : n / n_proc;
+
 	//columns of F
-	vector<double> loc_F_col_max = calc_max_in_col(F);
+	//vector<double> loc_F_col_max = calc_max_in_col(F);
+	vector<double> loc_F_col_max(m);
+	for (int i = 0; i < m; ++i) {
+		loc_F_col_max[i] = F[0][i];
+		for (int j = 1; j < loc_n; ++j) {
+			loc_F_col_max[i] = max(loc_F_col_max[i], F[j][i]);
+		}
+	}
+
 	//and rows of G
 	vector<double> loc_G_row_max = calc_max_in_col(G);
 
 
 //now we gather this local maximums in on common vector
-	vector<double> F_max = my_gather(loc_F_col_max, m, n_proc);
+	//vector<double> F_max = my_gather(loc_F_col_max, m, n_proc);
+	vector<double> F_max(m);
+	MPI_Allreduce(loc_F_col_max.data(), F_max.data(), m, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
 	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //
