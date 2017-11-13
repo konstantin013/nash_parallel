@@ -91,22 +91,6 @@ main(int argc, char *argv[])
 	MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-
-//getting local n and m
-
-	int n_b = n % n_proc;
-	int m_b = m % n_proc;
-
-	int loc_n = n / n_proc;
-	if (rank < n % n_proc) {
-		++loc_n;
-	}
-
-	int loc_m = m / n_proc;
-	if (rank < m * n_proc) {
-		++loc_m;
-	}	
-
 //Create and fill its part of matrices F and G
 	vector<vector<double> > F = create_local_matrix(n, m, n_proc, rank);
 	vector<vector<double> > G = create_local_matrix(m, n, n_proc, rank);
@@ -121,7 +105,6 @@ main(int argc, char *argv[])
 
 //now we gather this local maximums in on common vector
 	vector<double> F_max = my_gather(loc_F_col_max, n, n_proc);
-
 	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //
