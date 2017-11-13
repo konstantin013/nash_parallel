@@ -4,18 +4,11 @@
 #include <algorithm>
 #include <mpi.h>
 
-void
-get_local_dim()
-{
 
-}
+using namespace std;
 
 
-
-
-
-
-void 
+vector<double> 
 calc_max_in_col(const vector<vector<double> > &F)
 {
 	vector<double> F_max(F.size());
@@ -29,7 +22,7 @@ calc_max_in_col(const vector<vector<double> > &F)
 	return F_max;
 }
 
-void
+vector<double>
 my_gather(
 	const std::vector<double> &loc_max,
 	int n,
@@ -40,12 +33,12 @@ my_gather(
 
 	vector<int> pos(n_proc);
 	for (int i = 0; i < n_proc; ++i) {
-		pos[i] = rank <= cnt_big ? i * s_loc_n : i * s_loc_n + (i - cnt_big);
+		pos[i] = i <= cnt_big ? i * s_loc_n : i * s_loc_n + (i - cnt_big);
 	}
 
 	vector<int> rcount(n_proc);
 	for (int i = 0; i < n_proc; ++i) {
-		rcount[i] = rank < cnt_big ? s_loc_n + 1 : s_loc_n;
+		rcount[i] = i < cnt_big ? s_loc_n + 1 : s_loc_n;
 	}
 
 	vector<double> comm_max(n);	
@@ -85,12 +78,12 @@ main(int argc, char *argv[])
 	int n_b = n % n_proc;
 	int m_b = m % n_proc;
 
-	loc_n = n / n_proc;
+	int loc_n = n / n_proc;
 	if (rank < n % n_proc) {
 		++loc_n;
 	}
 
-	loc_m = m / n_proc;
+	int loc_m = m / n_proc;
 	if (rank < m * n_proc) {
 		++loc_m;
 	}	
@@ -99,7 +92,7 @@ main(int argc, char *argv[])
 	vector<vector<double> > F(loc_m, vector<double>(n));
 	for (auto &i: F) {
 		for (auto &j: i) {
-			j = 10.0
+			j = 10.0;
 		}
 	}
 
@@ -125,58 +118,6 @@ main(int argc, char *argv[])
 	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //
-
-
-
-
-
-
-
-
-	if (rank == 0) {
-
-	cout << "master hello" << fflush;
-
-
-		int tag = 0;
-		for (int i = 0; i < n; ++i) {
-			int dest = i % (n_proc - 1);
-			MPI_Send(&i, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
-		}
-
-		cout << "master send all assessments" << fflush;
-/*
-		tag = 1;
-		for (int j = 0; j < m; ++j) {
-			int dest = j % (n_proc - 1);
-			MPI_Send(&j, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);
-		}
-	*/
-
-		for (int i = 1; i < n_proc; ++i) {
-			int mes = -1;
-			MPI_Send(&mes, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-		}
-
-	} else {
-		vector<int> nums_rows;
-		int mes;
-		MPI_Status status;
-		while (true) {
-			MPI_Recv(&mes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
-			if (mes == -1) {
-				break;
-			} else {
-				nums_rows.push_back(mes);
-			}
-		}
-
-		cout << "i am process " << rank << " i have got ";
-		for (int i: nums_rows) {
-			cout << i << ", ";
-		}
-		cout << endl;
-	}
 
 
 
