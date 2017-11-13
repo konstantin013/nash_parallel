@@ -43,7 +43,7 @@ calc_max_in_col(const vector<vector<double> > &F)
 
 vector<double>
 my_gather(
-	const std::vector<double> &loc_max,
+	std::vector<double> &loc_max,
 	int n,
 	int n_proc)
 {
@@ -52,7 +52,7 @@ my_gather(
 
 	vector<int> pos(n_proc);
 	for (int i = 0; i < n_proc; ++i) {
-		pos[i] = i <= cnt_big ? i * s_loc_n : i * s_loc_n + (i - cnt_big);
+		pos[i] = (i <= cnt_big ? i * (s_loc_n + 1) : i * s_loc_n + cnt_big);
 	}
 
 	vector<int> rcount(n_proc);
@@ -104,11 +104,10 @@ main(int argc, char *argv[])
 
 
 //now we gather this local maximums in on common vector
-	vector<double> F_max = my_gather(loc_F_col_max, n, n_proc);
+	vector<double> F_max = my_gather(loc_F_col_max, m, n_proc);
 	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //
-
 
 
 	MPI_Finalize();
