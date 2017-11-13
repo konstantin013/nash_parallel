@@ -41,31 +41,6 @@ calc_max_in_col(const vector<vector<double> > &F)
 	return F_max;
 }
 
-vector<double>
-my_gather(
-	std::vector<double> &loc_max,
-	int n,
-	int n_proc)
-{
-	int s_loc_n = n / n_proc;
-	int cnt_big = n % n_proc;
-
-	vector<int> pos(n_proc);
-	for (int i = 0; i < n_proc; ++i) {
-		pos[i] = (i <= cnt_big ? i * (s_loc_n + 1) : i * s_loc_n + cnt_big);
-	}
-
-	vector<int> rcount(n_proc);
-	for (int i = 0; i < n_proc; ++i) {
-		rcount[i] = i < cnt_big ? s_loc_n + 1 : s_loc_n;
-	}
-
-	vector<double> comm_max(n);	
-	MPI_Allgatherv(loc_max.data(), loc_max.size(), MPI_DOUBLE,
-				comm_max.data(), rcount.data(), pos.data(), MPI_DOUBLE, MPI_COMM_WORLD);
-
-	return comm_max;
-}
 
 int
 main(int argc, char *argv[])
@@ -104,7 +79,6 @@ main(int argc, char *argv[])
 	int loc_n = rank < n % n_proc ? n / n_proc + 1 : n / n_proc;
 
 	//columns of F
-	//vector<double> loc_F_col_max = calc_max_in_col(F);
 	vector<double> loc_F_col_max(m);
 	for (int i = 0; i < m; ++i) {
 		loc_F_col_max[i] = F[0][i];
@@ -118,11 +92,9 @@ main(int argc, char *argv[])
 
 
 //now we gather this local maximums in on common vector
-	//vector<double> F_max = my_gather(loc_F_col_max, m, n_proc);
+
 	vector<double> F_max(m);
 	MPI_Allreduce(loc_F_col_max.data(), F_max.data(), m, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-	//vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
 //find nash equilibriums
 
