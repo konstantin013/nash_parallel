@@ -118,9 +118,19 @@ main(int argc, char *argv[])
 	vector<double> F_max(m);
 	MPI_Allreduce(loc_F_col_max.data(), F_max.data(), m, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-	vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
+	//vector<double> G_max = my_gather(loc_G_row_max, m, n_proc);
 
-//
+//find nash equilibriums
+
+	vector<pair<int, int> > loc_ans;
+
+	for (int i = 0; i < loc_n; ++i) {
+		for (int j = 0; j < m; ++j) {
+			if (F[i][j] == F_max[j] && G[i][j] == loc_G_row_max[i]) {
+				loc_ans.push_back(make_pair(i, j));
+			}
+		}
+	}
 
 
 	MPI_Finalize();
