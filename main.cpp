@@ -11,8 +11,23 @@ get_local_dim()
 }
 
 
-void
-my_gather()
+
+
+
+
+void 
+calc_max_in_col(const vector<vector<double> > &F)
+{
+	vector<double> F_max(F.size());
+	for (int i = 0; i < F.size(); ++i) {
+		F_max[i] = F[i][0];
+		for (int j = 1; j < F[i].size(); ++j) {
+			F_max[i] = max(F_max[i], F[i][j]);
+		}
+	}
+
+	return F_max;
+}
 
 
 int
@@ -56,7 +71,7 @@ main(int argc, char *argv[])
 	}	
 
 //Create and fill its part of matrices F and G
-	vector<vector<double> > F(n, vector<double>(loc_m));
+	vector<vector<double> > F(loc_m, vector<double>(n));
 	for (auto &i: F) {
 		for (auto &j: i) {
 			j = 10.0
@@ -74,23 +89,10 @@ main(int argc, char *argv[])
 //every process calculate max in every its rows of matrix G and columns of matrix F
 
 	//columns of F
-	vector<double> loc_F_col_max(loc_m);
-	for (int i = 0; i < loc_m; ++i) {
-		loc_F_col_max[i] = F[0][i];
-		for (int j = 1; j < n; ++j) {
-			loc_F_col_max[i] = max(loc_F_col_max[i], F[j][i]);
-		}
-	}
-
-
+	vector<double> loc_F_col_max = calc_max_in_col(F);
 	//and rows of G
-	vector<double> loc_G_row_max(loc_n);
-	for (int i = 0; i < loc_n; ++i) {
-		loc_G_row_max[i] = G[i][0];
-		for (int j = 1; j < m; ++j) {
-			loc_G_row_max[i] = max(loc_G_row_max[i], G[i][j]);
-		}
-	}
+	vector<double> loc_G_row_max = calc_max_in_col(G);
+
 
 //now we gather this local maximums in on common vector
 	vector<double> F_max(m);
