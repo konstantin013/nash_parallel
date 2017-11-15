@@ -1,8 +1,8 @@
+#include <mpi.h>
 #include <iostream>
 #include <vector>
 #include <list>
 #include <algorithm>
-#include <mpi.h>
 
 
 using namespace std;
@@ -18,9 +18,9 @@ create_local_matrix(
 	int loc_n = rank < n % n_proc ? n / n_proc + 1 : n / n_proc;
 
 	vector<vector<double> > F(loc_n, vector<double>(m));
-	for (auto &i: F) {
-		for (auto &j: i) {
-			j = rand() % 1000;
+	for (int i = 0; i < F.size(); ++i) {
+		for (int j = 0; j < F[i].size(); ++j) {
+			F[i][j] = rand() % 1000;
 		}
 	}	
 
@@ -120,4 +120,6 @@ main(int argc, char *argv[])
 
 	MPI_Finalize();
 
+
+	return 0;
 }
